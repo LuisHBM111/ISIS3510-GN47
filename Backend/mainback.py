@@ -1,5 +1,5 @@
 import djikstra as di
-import Backend.auxiliary as wo
+import auxiliary as wo
 
 import pandas as pd
 
