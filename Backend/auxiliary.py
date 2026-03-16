@@ -30,6 +30,7 @@ def time_wording (minutos,segundos):
 
 
 def format_minute_word(minutos):
+    #CONCAT MINUTOS
     if minutos == 0:
         minute_word = ''
     elif minutos == 1: 
@@ -39,6 +40,7 @@ def format_minute_word(minutos):
     return minute_word
 
 def format_second_word(segundos):
+    #CONCAT SEGUNDOS
     if segundos == 0:
         second_word = ''
     elif segundos == 1: 
