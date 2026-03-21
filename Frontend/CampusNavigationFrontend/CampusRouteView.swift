@@ -4,15 +4,18 @@ struct CampusRouteView: View {
     @EnvironmentObject private var appState: CampusAppState
     @State private var origen = "Edifico SD"
     @State private var destino = "ML 203"
+    private let travelMinutes = 5
+
 
     var body: some View {
-        VStack(spacing: 16) {
-            Text("Elegir origen y destino")
-            CampusInputField(title: "Origen", text: $origen, icon: "map.circle.fill")
-            CampusInputField(title: "Destino", text: $destino, icon: "mappin.circle.fill")
-        }
         ScrollView {
             VStack(alignment: .leading, spacing: 18) {
+                VStack(spacing: 16) {
+                    Text("Elegir origen y destino")
+                    CampusInputField(title: "Origen", text: $origen, icon: "map.circle.fill")
+                    CampusInputField(title: "Destino", text: $destino, icon: "mappin.circle.fill")
+                }
+
                 header
                 routeMap
                 routeStepsCard
@@ -35,6 +38,10 @@ struct CampusRouteView: View {
                 Text("Desde entrada SD hasta ML 203.")
                     .font(.subheadline)
                     .foregroundStyle(CampusTheme.muted)
+
+                Text("Si sales ahora, llegas a las \(estimatedArrivalText).")
+                    .font(.subheadline.weight(.semibold))
+                    .foregroundStyle(CampusTheme.charcoal)
             } else {
                 Text("Primero debes cargar o crear un horario.")
                     .font(.subheadline)
@@ -67,13 +74,25 @@ struct CampusRouteView: View {
             VStack {
                 Spacer()
                 HStack {
-                    badge("5 min")
+                    badge("\(travelMinutes) min")
                     Spacer()
                     badge("650 m")
                 }
             }
             .padding(20)
         }
+    }
+
+    private var estimatedArrivalText: String {
+        let arrivalDate = Calendar.current.date(byAdding: .minute, value: travelMinutes, to: Date()) ?? Date()
+        return arrivalFormatter.string(from: arrivalDate)
+    }
+
+    private var arrivalFormatter: DateFormatter {
+        let formatter = DateFormatter()
+        formatter.dateStyle = .none
+        formatter.timeStyle = .short
+        return formatter
     }
 
     private var routeStepsCard: some View {
