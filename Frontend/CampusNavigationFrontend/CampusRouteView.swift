@@ -2,8 +2,15 @@ import SwiftUI
 
 struct CampusRouteView: View {
     @EnvironmentObject private var appState: CampusAppState
+    @State private var origen = "Edifico SD"
+    @State private var destino = "ML 203"
 
     var body: some View {
+        VStack(spacing: 16) {
+            Text("Elegir origen y destino")
+            CampusInputField(title: "Origen", text: $origen, icon: "map.circle.fill")
+            CampusInputField(title: "Destino", text: $destino, icon: "mappin.circle.fill")
+        }
         ScrollView {
             VStack(alignment: .leading, spacing: 18) {
                 header
@@ -16,6 +23,7 @@ struct CampusRouteView: View {
         .navigationTitle("Vista Ruta")
         .navigationBarTitleDisplayMode(.inline)
     }
+    
 
     private var header: some View {
         VStack(alignment: .leading, spacing: 8) {
