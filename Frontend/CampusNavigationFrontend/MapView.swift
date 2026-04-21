@@ -57,15 +57,7 @@ let campusBuildings: [CampusBuilding] = [
         coordinate: CLLocationCoordinate2D(latitude: 4.6030, longitude: -74.0651),
         category: .academic,
         description: "Facultad de Ingeniería y Ciencias",
-        icon: "desktopcomputer"
-    ),
-    CampusBuilding(
-        name: "Edificio C",
-        shortName: "C",
-        coordinate: CLLocationCoordinate2D(latitude: 4.6022, longitude: -74.0661),
-        category: .academic,
-        description: "Aulas y laboratorios de ingeniería",
-        icon: "building.2.fill"
+        icon: "building.fill"
     ),
     CampusBuilding(
         name: "Edificio B",
@@ -81,36 +73,84 @@ let campusBuildings: [CampusBuilding] = [
         coordinate: CLLocationCoordinate2D(latitude: 4.6015, longitude: -74.0640),
         category: .academic,
         description: "Aulas generales y posgrados",
-        icon: "graduationcap.fill"
+        icon: "building.fill"
     ),
     CampusBuilding(
-        name: "Biblioteca General",
-        shortName: "BIB",
-        coordinate: CLLocationCoordinate2D(latitude: 4.6025, longitude: -74.0655),
+        name: "Edificio Henry Yerli",
+        shortName: "O",
+        coordinate: CLLocationCoordinate2D(latitude: 4.6015, longitude: -74.0640),
+        category: .academic,
+        description: "Aulas generales y posgrados",
+        icon: "building.fill"
+    ),
+    CampusBuilding(
+        name: "Biblioteca General Ramón de Zubiría",
+        shortName: "Biblioteca",
+        coordinate: CLLocationCoordinate2D(latitude: 4.603145124835193, longitude: -74.06511214436118),
         category: .library,
         description: "Biblioteca central y salas de estudio",
         icon: "books.vertical.fill"
     ),
     CampusBuilding(
         name: "Sede Julio Mario Santo Domingo",
-        shortName: "JMSD",
+        shortName: "SD",
         coordinate: CLLocationCoordinate2D(latitude: 4.6031, longitude: -74.0649),
-        category: .admin,
+        category: .academic,
         description: "Auditorio y centros culturales",
-        icon: "music.note.house.fill"
+        icon: "building.fill"
+    ),
+    CampusBuilding(
+        name: "Edificio Arte y Diseño Tx",
+        shortName: "TX",
+        coordinate: CLLocationCoordinate2D(latitude: 4.601118603281187, longitude: -74.0636527660052),
+        category: .academic,
+        description: "Aulas , laboratorios y talleres",
+        icon: "building.fill"
+    ),
+    CampusBuilding(
+        name: "Edificio Arquitectura y Diseño",
+        shortName: "C",
+        coordinate: CLLocationCoordinate2D(latitude: 4.601347079437167, longitude: -74.065219450908),
+        category: .academic,
+        description: "Aulas y talleres",
+        icon: "building.fill"
     ),
     CampusBuilding(
         name: "Centro Deportivo",
-        shortName: "GYM",
-        coordinate: CLLocationCoordinate2D(latitude: 4.6010, longitude: -74.0658),
+        shortName: "La Caneca",
+        coordinate: CLLocationCoordinate2D(latitude: 4.600087848729064, longitude: -74.06259413809),
         category: .sports,
         description: "Gimnasio, piscina y canchas",
         icon: "figure.run"
     ),
     CampusBuilding(
-        name: "Plaza de Comidas",
-        shortName: "FOOD",
-        coordinate: CLLocationCoordinate2D(latitude: 4.6018, longitude: -74.0648),
+        name: "Plaza de Comidas Bloque Z",
+        shortName: "Plazoleta Z",
+        coordinate: CLLocationCoordinate2D(latitude: 4.602720193216494, longitude: -74.06550224839602),
+        category: .food,
+        description: "Restaurantes y cafeterías del campus",
+        icon: "fork.knife"
+    ),
+    CampusBuilding(
+        name: "Saudade",
+        shortName: "Saudade",
+        coordinate: CLLocationCoordinate2D(latitude: 4.603372222323348, longitude: -74.06415097196215),
+        category: .food,
+        description: "Restaurantes y cafeterías del campus",
+        icon: "fork.knife"
+    ),
+    CampusBuilding(
+        name: "Ajiaco & Frijoles",
+        shortName: "A&F",
+        coordinate: CLLocationCoordinate2D(latitude: 4.603650235170581, longitude: -74.06565300928278),
+        category: .food,
+        description: "Restaurantes y cafeterías del campus",
+        icon: "fork.knife"
+    ),
+    CampusBuilding(
+        name: "Starbucks",
+        shortName: "Starbucks",
+        coordinate: CLLocationCoordinate2D(latitude: 4.602388278858029, longitude: -74.06537405985544),
         category: .food,
         description: "Restaurantes y cafeterías del campus",
         icon: "fork.knife"
@@ -119,18 +159,24 @@ let campusBuildings: [CampusBuilding] = [
 
 // MARK: - Main View
 
+
 struct CampusMapView: View {
+    
+    /*
     @State private var cameraPosition: MapCameraPosition = .region(
         MKCoordinateRegion(
             center: CLLocationCoordinate2D(latitude: 4.6020, longitude: -74.0655),
-            span: MKCoordinateSpan(latitudeDelta: 0.004, longitudeDelta: 0.004)
+            span: MKCoordinateSpan(latitudeDelta: 0.006, longitudeDelta: 0.006) //zoom del mapa
         )
     )
+     */
+     
     @State private var selectedBuilding: CampusBuilding? = nil
     @State private var selectedCategory: BuildingCategory? = nil
     @State private var searchText: String = ""
     @State private var showSearch: Bool = false
     @State private var isSatellite: Bool = false
+    @State private var position: MapCameraPosition = .userLocation(fallback: .automatic)
 
     var filteredBuildings: [CampusBuilding] {
         campusBuildings.filter { building in
@@ -144,7 +190,7 @@ struct CampusMapView: View {
         ZStack(alignment: .top) {
 
             // Mapa
-            Map(position: $cameraPosition) {
+            Map(position: $position) {
                 ForEach(filteredBuildings) { building in
                     Annotation(building.shortName, coordinate: building.coordinate, anchor: .bottom) {
                         BuildingMarker(building: building, isSelected: selectedBuilding?.id == building.id)
@@ -158,8 +204,13 @@ struct CampusMapView: View {
             }
             .mapStyle(isSatellite ? .imagery : .standard)
             .ignoresSafeArea()
+            .onAppear{
+                CLLocationManager().requestWhenInUseAuthorization()
+            }
 
             //Controles de arriba
+            
+            
             VStack(spacing: 0) {
                 topBar
                     .padding(.horizontal, 16)
@@ -246,7 +297,7 @@ struct CampusMapView: View {
                     .shadow(color: .black.opacity(0.1), radius: 6, x: 0, y: 2)
             }
 
-            
+            /*
             Button(action: {
                 withAnimation(.spring()) {
                     cameraPosition = .region(MKCoordinateRegion(
@@ -254,9 +305,9 @@ struct CampusMapView: View {
                         span: MKCoordinateSpan(latitudeDelta: 0.004, longitudeDelta: 0.004)
                     ))
                 }
-            }) {
-                
-            }
+            })
+            */
+            
         }
     }
 
@@ -374,7 +425,7 @@ struct FilterChip: View {
 struct BuildingDetailCard: View {
     let building: CampusBuilding
     let onDismiss: () -> Void
-
+    
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             // Handle
@@ -387,7 +438,7 @@ struct BuildingDetailCard: View {
             }
             .padding(.top, 12)
             .padding(.bottom, 16)
-
+            
             HStack(alignment: .top, spacing: 14) {
                 ZStack {
                     RoundedRectangle(cornerRadius: 14)
@@ -397,7 +448,7 @@ struct BuildingDetailCard: View {
                         .font(.system(size: 24, weight: .semibold))
                         .foregroundColor(building.category.color)
                 }
-
+                
                 VStack(alignment: .leading, spacing: 4) {
                     Text(building.name)
                         .font(.system(size: 18, weight: .bold))
@@ -405,7 +456,7 @@ struct BuildingDetailCard: View {
                     Text(building.description)
                         .font(.system(size: 14))
                         .foregroundColor(Color(hex: "6B7280"))
-
+                    
                     HStack(spacing: 6) {
                         Image(systemName: building.category.icon)
                             .font(.system(size: 11))
@@ -419,9 +470,9 @@ struct BuildingDetailCard: View {
                     .clipShape(Capsule())
                     .padding(.top, 2)
                 }
-
+                
                 Spacer()
-
+                
                 Button(action: onDismiss) {
                     Image(systemName: "xmark")
                         .font(.system(size: 13, weight: .bold))
@@ -429,53 +480,26 @@ struct BuildingDetailCard: View {
                         .frame(width: 30, height: 30)
                         .background(Color(hex: "F3F4F6"))
                         .clipShape(Circle())
+                    
                 }
+                .padding(.horizontal, 16)
+                
+                // Action buttons
+                
+                .padding(.horizontal, 16)
+                .padding(.top, 16)
+                .padding(.bottom, 20)
             }
-            .padding(.horizontal, 16)
-
-            // Action buttons
-            HStack(spacing: 10) {
-                ActionButton(icon: "location.fill",  label: "Cómo llegar",
-                             color: Color(hex: "F5C518"), textColor: .black)
-                ActionButton(icon: "info.circle.fill", label: "Más info",
-                             color: Color(hex: "F3F4F6"), textColor: Color(hex: "374151"))
-                ActionButton(icon: "star.fill", label: "Guardar",
-                             color: Color(hex: "F3F4F6"), textColor: Color(hex: "374151"))
-            }
-            .padding(.horizontal, 16)
-            .padding(.top, 16)
-            .padding(.bottom, 20)
-        }
-        .background(Color.white)
-        .clipShape(RoundedRectangle(cornerRadius: 24))
-        .shadow(color: .black.opacity(0.12), radius: 20, x: 0, y: -4)
-    }
-}
-
-struct ActionButton: View {
-    let icon: String
-    let label: String
-    let color: Color
-    let textColor: Color
-
-    var body: some View {
-        Button(action: {}) {
-            HStack(spacing: 6) {
-                Image(systemName: icon)
-                    .font(.system(size: 13, weight: .semibold))
-                Text(label)
-                    .font(.system(size: 13, weight: .semibold))
-            }
-            .foregroundColor(textColor)
-            .frame(maxWidth: .infinity)
-            .padding(.vertical, 12)
-            .background(color)
-            .clipShape(RoundedRectangle(cornerRadius: 12))
+            .background(Color.white)
+            .clipShape(RoundedRectangle(cornerRadius: 24))
+            .shadow(color: .black.opacity(0.12), radius: 20, x: 0, y: -4)
         }
     }
-}
-
-// MARK: - Preview
-#Preview {
-    CampusMapView()
+    
+    
+    
+    // MARK: - Preview
+    #Preview {
+        CampusMapView()
+    }
 }

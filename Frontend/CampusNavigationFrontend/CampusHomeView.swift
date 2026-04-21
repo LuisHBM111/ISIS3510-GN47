@@ -44,6 +44,26 @@ struct CampusHomeView: View {
                             icon: "tray.and.arrow.down.fill"
                         )
                     }
+                    
+                    Button {
+                        path.append(.translator)
+                    } label: {
+                        HomeActionCard(
+                            title: "Translate",
+                            subtitle: "Traductor de voz en tiempo real",
+                            icon: "translate"
+                        )
+                    }
+                    
+                    Button {
+                        path.append(.mapView)
+                    } label: {
+                        HomeActionCard(
+                            title: "Mapa",
+                            subtitle: "Mapa del campus",
+                            icon: "map.fill"
+                        )
+                    }
                 }
                 .padding(20)
             }
@@ -57,6 +77,11 @@ struct CampusHomeView: View {
                     CreateScheduleView()
                 case .loadSchedule:
                     LoadScheduleView()
+                case .translator:
+                    VoiceTranslatorView()
+                case .mapView:
+                    CampusMapView()
+                    
                 }
             }
         }
