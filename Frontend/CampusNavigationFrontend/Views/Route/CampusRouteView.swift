@@ -1,7 +1,7 @@
 import SwiftUI
 
 struct CampusRouteView: View {
-    @EnvironmentObject private var appState: CampusAppState
+    @Environment(CampusAppState.self) private var appState
 
     var body: some View {
         ScrollView {
@@ -23,7 +23,7 @@ struct CampusRouteView: View {
                 .font(.system(size: 28, weight: .black))
                 .foregroundStyle(CampusTheme.ink)
 
-            if let nextClass = appState.currentSchedule.classes.first {
+            if !appState.currentSchedule.classes.isEmpty {
                 Text("Desde entrada SD hasta ML 203.")
                     .font(.subheadline)
                     .foregroundStyle(CampusTheme.muted)
@@ -113,6 +113,6 @@ struct CampusRouteView: View {
 #Preview {
     NavigationStack {
         CampusRouteView()
-            .environmentObject(CampusAppState())
+            .environment(CampusAppState())
     }
 }

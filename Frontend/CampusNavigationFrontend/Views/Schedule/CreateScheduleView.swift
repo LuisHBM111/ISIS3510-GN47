@@ -1,7 +1,7 @@
 import SwiftUI
 
 struct CreateScheduleView: View {
-    @EnvironmentObject private var appState: CampusAppState
+    @Environment(CampusAppState.self) private var appState
     @State private var draft = ScheduleDraft()
 
     private let days = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes"]
@@ -75,6 +75,6 @@ struct CreateScheduleView: View {
 #Preview {
     NavigationStack {
         CreateScheduleView()
-            .environmentObject(CampusAppState())
+            .environment(CampusAppState())
     }
 }
