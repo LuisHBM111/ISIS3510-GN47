@@ -2,10 +2,15 @@ import SwiftUI
 
 struct CampusRouteView: View {
     @State private var viewModel = RouteViewModel()
+    @State private var monitor = NetworkMonitor()
 
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 20) {
+                if !monitor.isConnected {
+                    connectivityBanner
+                }
+
                 inputs
                 calculateButton
 
@@ -13,8 +18,16 @@ struct CampusRouteView: View {
                     errorBanner(msg)
                 }
 
+                if viewModel.isOffline, viewModel.route != nil {
+                    offlineResultBanner
+                }
+
                 if let route = viewModel.route {
                     resultCard(route)
+                }
+
+                if !viewModel.topRoutes.isEmpty {
+                    topRoutesCard
                 }
             }
             .padding(20)
@@ -22,6 +35,13 @@ struct CampusRouteView: View {
         .background(CampusTheme.background)
         .navigationTitle("Vista Ruta")
         .navigationBarTitleDisplayMode(.inline)
+        .task { await viewModel.onAppear() }
+        .alert("Sin conexión a internet",
+               isPresented: $viewModel.showOfflineAlert) {
+            Button("Entendido", role: .cancel) { }
+        } message: {
+            Text("No se pudo calcular la ruta porque no hay internet y no tenemos una versión guardada. Vuelve a intentarlo cuando recuperes la conexión.")
+        }
     }
 
     private var inputs: some View {
@@ -33,7 +53,7 @@ struct CampusRouteView: View {
 
     private var calculateButton: some View {
         Button {
-            Task { await viewModel.calculateRoute() }
+            Task { await viewModel.calculateRoute(isConnected: monitor.isConnected) }
         } label: {
             HStack(spacing: 8) {
                 if viewModel.isLoading { ProgressView() }
@@ -46,6 +66,27 @@ struct CampusRouteView: View {
             .background(CampusTheme.primary, in: RoundedRectangle(cornerRadius: 18))
         }
         .disabled(viewModel.isLoading)
+    }
+
+    private var connectivityBanner: some View {
+        HStack(spacing: 10) {
+            Image(systemName: "wifi.slash")
+            Text("Sin conexión: se usará la última ruta guardada si existe.")
+                .font(.footnote.bold())
+        }
+        .foregroundStyle(CampusTheme.ink)
+        .padding(12)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(CampusTheme.primary.opacity(0.35), in: RoundedRectangle(cornerRadius: 14))
+    }
+
+    private var offlineResultBanner: some View {
+        Text("Mostrando la última ruta guardada (modo offline).")
+            .font(.footnote.bold())
+            .foregroundStyle(CampusTheme.ink)
+            .padding(12)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .background(CampusTheme.primary.opacity(0.25), in: RoundedRectangle(cornerRadius: 14))
     }
 
     private func resultCard(_ route: RouteResponse) -> some View {
@@ -83,6 +124,36 @@ struct CampusRouteView: View {
         }
         .padding(18)
         .background(CampusTheme.surface, in: RoundedRectangle(cornerRadius: 20))
+        .overlay(RoundedRectangle(cornerRadius: 20).stroke(CampusTheme.border, lineWidth: 1))
+    }
+
+    private var topRoutesCard: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text("Tus rutas más consultadas")
+                .font(.headline)
+            ForEach(viewModel.topRoutes) { item in
+                Button {
+                    viewModel.useRoute(item)
+                } label: {
+                    HStack {
+                        Text(item.label)
+                            .font(.subheadline.bold())
+                            .foregroundStyle(CampusTheme.ink)
+                        Spacer()
+                        Text("\(item.count)×")
+                            .font(.footnote.bold())
+                            .foregroundStyle(CampusTheme.muted)
+                    }
+                    .padding(.vertical, 10)
+                    .padding(.horizontal, 14)
+                    .background(CampusTheme.surface, in: RoundedRectangle(cornerRadius: 12))
+                    .overlay(RoundedRectangle(cornerRadius: 12).stroke(CampusTheme.border, lineWidth: 1))
+                }
+                .buttonStyle(.plain)
+            }
+        }
+        .padding(18)
+        .background(CampusTheme.surface.opacity(0.6), in: RoundedRectangle(cornerRadius: 20))
         .overlay(RoundedRectangle(cornerRadius: 20).stroke(CampusTheme.border, lineWidth: 1))
     }
 
