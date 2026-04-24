@@ -17,6 +17,14 @@ struct VoiceTranslatorView: View {
 
             VStack(spacing: 0) {
                 TopBarView()
+                if !viewModel.networkMonitor.isConnected {
+                    Text("No es posible usar el traductor porque no hay conexión a internet")
+                        .font(.caption.bold())
+                        .foregroundStyle(.white)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 6)
+                        .background(Color.orange.opacity(0.85))
+                }
 
                 ScrollView {
                     VStack(spacing: 16) {
