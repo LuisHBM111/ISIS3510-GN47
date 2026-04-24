@@ -37,6 +37,15 @@ struct CampusMapView: View {
 
             // Controles de arriba
             VStack(spacing: 0) {
+                if !vm.networkMonitor.isConnected {
+                    Text("Sin conexión — mostrando datos locales")
+                        .font(.caption.bold())
+                        .foregroundStyle(.white)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 6)
+                        .background(Color.red.opacity(0.85))
+                        .transition(.move(edge: .top).combined(with: .opacity))
+                }
                 topBar
                     .padding(.horizontal, 16)
                     .padding(.top, 10)

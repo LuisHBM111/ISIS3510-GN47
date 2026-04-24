@@ -21,7 +21,19 @@ final class VoiceTranslatorViewModel {
     var isRecording: Bool = true
     var history: [TranslationEntry] = []
 
+    // Network & cache
+    let networkMonitor = NetworkMonitor()
+    private let historyKey = "translator.history"
+
     private let synthesizer = AVSpeechSynthesizer()
+
+    init() {
+        // Carga el historial persistido al iniciar
+        Task {
+            let cached = await CampusCache.shared.load([TranslationEntry].self, key: historyKey)
+            history = cached ?? []
+        }
+    }
 
     // Maps display language names to BCP-47 locale codes for speech synthesis
     private let localeCodes: [String: String] = [
@@ -50,6 +62,10 @@ final class VoiceTranslatorViewModel {
                 date: Date()
             )
             history.insert(entry, at: 0)
+            
+            Task {
+                await CampusCache.shared.save(history, key: historyKey)
+            }
         }
     }
 
