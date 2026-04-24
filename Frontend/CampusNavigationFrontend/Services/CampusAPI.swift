@@ -13,13 +13,13 @@ enum CampusAPI {
     }
 }
 
-struct RouteResponse: Decodable {
+struct RouteResponse: Codable {
     let from: String
     let to: String
     let totalTimeMinutes: Double
     let path: [Node]
 
-    struct Node: Decodable, Identifiable, Hashable {
+    struct Node: Codable, Identifiable, Hashable {
         let id: String
         let label: String
     }
