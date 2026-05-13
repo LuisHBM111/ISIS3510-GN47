@@ -8,12 +8,51 @@ final class CampusAppState {
     var currentUser: CampusUser?
     var currentSchedule: ScheduleTemplate = CampusMockData.templates[0]
     var editableClasses: [ScheduleClass] = CampusMockData.templates[0].classes
+    var loginError: String?
+    var isAuthenticating = false
 
-    func login(email: String, password: String) {
-        guard !email.isEmpty, !password.isEmpty else { return }
-        let prefix = email.split(separator: "@").first.map(String.init) ?? "Estudiante"
-        currentUser = CampusUser(name: prefix.capitalized, email: email)
-        isLoggedIn = true
+    func login(email: String, password: String) async {
+        guard !email.isEmpty, !password.isEmpty else {
+            loginError = "Debes ingresar correo y contraseña."
+            return
+        }
+        isAuthenticating = true
+        loginError = nil
+        defer { isAuthenticating = false }
+        do {
+            let resp = try await CampusAPI.signIn(email: email, password: password)
+            SessionManager.getInstance().set(idToken: resp.idToken, localId: resp.localId, email: resp.email)
+            let prefix = resp.email.split(separator: "@").first.map(String.init) ?? "Estudiante"
+            currentUser = CampusUser(name: prefix.capitalized, email: resp.email)
+            isLoggedIn = true
+        } catch {
+            loginError = error.localizedDescription
+        }
+    }
+
+    func signUp(email: String, password: String) async {
+        guard !email.isEmpty, !password.isEmpty else {
+            loginError = "Debes ingresar correo y contraseña."
+            return
+        }
+        isAuthenticating = true
+        loginError = nil
+        defer { isAuthenticating = false }
+        do {
+            let resp = try await CampusAPI.signUp(email: email, password: password)
+            SessionManager.getInstance().set(idToken: resp.idToken, localId: resp.localId, email: resp.email)
+            let prefix = resp.email.split(separator: "@").first.map(String.init) ?? "Estudiante"
+            currentUser = CampusUser(name: prefix.capitalized, email: resp.email)
+            isLoggedIn = true
+        } catch {
+            loginError = error.localizedDescription
+        }
+    }
+
+    func logout() {
+        SessionManager.getInstance().clear()
+        currentUser = nil
+        isLoggedIn = false
     }
 
     func loadSchedule(_ template: ScheduleTemplate) {
