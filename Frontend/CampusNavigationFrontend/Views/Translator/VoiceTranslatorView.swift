@@ -1,11 +1,6 @@
-//
-//  VoiceTranslatorView.swift
-//  CampusNavigationFrontend
-//
-
 import SwiftUI
+import Translation
 
-// MARK: - Main View
 struct VoiceTranslatorView: View {
     @State private var viewModel = VoiceTranslatorViewModel()
     @State private var showHistory = false
@@ -17,14 +12,6 @@ struct VoiceTranslatorView: View {
 
             VStack(spacing: 0) {
                 TopBarView()
-                if !viewModel.networkMonitor.isConnected {
-                    Text("No es posible usar el traductor porque no hay conexión a internet")
-                        .font(.caption.bold())
-                        .foregroundStyle(.white)
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, 6)
-                        .background(Color.orange.opacity(0.85))
-                }
 
                 ScrollView {
                     VStack(spacing: 16) {
@@ -34,9 +21,33 @@ struct VoiceTranslatorView: View {
                             onSwap: viewModel.swapLanguages
                         )
 
-                        if !viewModel.transcription.isEmpty {
-                            TranscriptionCard(text: viewModel.transcription)
+                        // Campo de texto editable
+                        VStack(alignment: .leading, spacing: 8) {
+                            Text("Texto a traducir")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+
+                            TextEditor(text: $viewModel.transcription)
+                                .frame(minHeight: 80)
+                                .padding(8)
+                                .background(Color.white)
+                                .clipShape(RoundedRectangle(cornerRadius: 12))
+                                .shadow(color: .black.opacity(0.05), radius: 4)
+
+                            if !viewModel.transcription.isEmpty && !viewModel.isRecording {
+                                Button {
+                                    viewModel.triggerTranslation()
+                                } label: {
+                                    Label("Traducir", systemImage: "translate")
+                                        .frame(maxWidth: .infinity)
+                                        .padding(.vertical, 10)
+                                        .background(Color(hex: "D4A017"))
+                                        .foregroundStyle(.white)
+                                        .clipShape(RoundedRectangle(cornerRadius: 10))
+                                }
+                            }
                         }
+                        .padding(.horizontal, 4)
 
                         if !viewModel.translation.isEmpty {
                             TranslationCard(
@@ -65,13 +76,18 @@ struct VoiceTranslatorView: View {
             }
             .ignoresSafeArea(edges: .bottom)
         }
+        .translationPresentation(
+            isPresented: $viewModel.showTranslationPopup,
+            text: viewModel.transcription
+        ) { translatedText in
+            viewModel.didReceiveTranslation(translatedText)
+        }
         .sheet(isPresented: $showHistory) {
             HistoryView(entries: viewModel.history)
         }
     }
 }
 
-// MARK: - Preview
 #Preview {
     VoiceTranslatorView()
 }
