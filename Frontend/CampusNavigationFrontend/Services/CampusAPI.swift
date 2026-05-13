@@ -14,6 +14,12 @@ enum CampusAPI {
         return try JSONDecoder().decode(RouteResponse.self, from: data)
     }
 
+    static func fetchBuildings() async throws -> [BuildingDTO] {
+        let url = URL(string: "\(baseURL)/api/v1/buildings")!
+        let (data, _) = try await URLSession.shared.data(from: url)
+        return try JSONDecoder().decode([BuildingDTO].self, from: data)
+    }
+
     static func signIn(email: String, password: String) async throws -> FirebaseAuthResponse {
         try await firebaseCall(path: "accounts:signInWithPassword", email: email, password: password)
     }
@@ -50,6 +56,17 @@ enum CampusAPI {
             return raw
         }
     }
+}
+
+struct BuildingDTO: Codable {
+    let id: String
+    let name: String
+    let shortName: String
+    let latitude: Double
+    let longitude: Double
+    let category: String
+    let description: String
+    let icon: String
 }
 
 struct RouteResponse: Codable {
