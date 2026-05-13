@@ -63,55 +63,31 @@ struct CampusMapView: View {
                 Spacer()
             }
 
-            // Loading / error overlay
-            if vm.isLoadingBuildings {
-                VStack {
-                    Spacer()
-                    HStack(spacing: 10) {
-                        ProgressView()
-                            .progressViewStyle(CircularProgressViewStyle())
-                            .scaleEffect(0.85)
-                        Text("Cargando edificios…")
+            // Toca edificio para ver detalles
+            VStack {
+                Spacer()
+                if let building = vm.selectedBuilding {
+                    BuildingDetailCard(building: building) {
+                        withAnimation { vm.selectedBuilding = nil }
+                    }
+                    .transition(.move(edge: .bottom).combined(with: .opacity))
+                    .padding(.horizontal, 16)
+                    .padding(.bottom, 30)
+                } else {
+                    HStack(spacing: 6) {
+                        Image(systemName: "hand.tap.fill")
+                            .font(.system(size: 12))
+                            .foregroundColor(Color(hex: "9CA3AF"))
+                        Text("Toca un edificio para ver detalles")
                             .font(.system(size: 13))
                             .foregroundColor(Color(hex: "6B7280"))
                     }
                     .padding(.horizontal, 16)
                     .padding(.vertical, 10)
-                    .background(Color.white.opacity(0.95))
+                    .background(Color.white.opacity(0.9))
                     .clipShape(Capsule())
-                    .shadow(color: .black.opacity(0.08), radius: 6, x: 0, y: 2)
+                    .shadow(color: .black.opacity(0.06), radius: 4, x: 0, y: 2)
                     .padding(.bottom, 30)
-                }
-                .transition(.opacity)
-            }
-
-            // Toca edificio para ver detalles
-            if !vm.isLoadingBuildings {
-                VStack {
-                    Spacer()
-                    if let building = vm.selectedBuilding {
-                        BuildingDetailCard(building: building) {
-                            withAnimation { vm.selectedBuilding = nil }
-                        }
-                        .transition(.move(edge: .bottom).combined(with: .opacity))
-                        .padding(.horizontal, 16)
-                        .padding(.bottom, 30)
-                    } else {
-                        HStack(spacing: 6) {
-                            Image(systemName: "hand.tap.fill")
-                                .font(.system(size: 12))
-                                .foregroundColor(Color(hex: "9CA3AF"))
-                            Text("Toca un edificio para ver detalles")
-                                .font(.system(size: 13))
-                                .foregroundColor(Color(hex: "6B7280"))
-                        }
-                        .padding(.horizontal, 16)
-                        .padding(.vertical, 10)
-                        .background(Color.white.opacity(0.9))
-                        .clipShape(Capsule())
-                        .shadow(color: .black.opacity(0.06), radius: 4, x: 0, y: 2)
-                        .padding(.bottom, 30)
-                    }
                 }
             }
 

@@ -75,7 +75,7 @@ struct BuildingDetailCard: View {
             .padding(.top, 16)
             .padding(.bottom, 20)
         }
-        //Background, clip y shadow sobre el VStack externo
+        // ✅ Background, clip y shadow sobre el VStack externo
         .background(Color.white)
         .clipShape(RoundedRectangle(cornerRadius: 24))
         .shadow(color: .black.opacity(0.12), radius: 20, x: 0, y: -4)

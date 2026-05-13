@@ -12,13 +12,9 @@ import Observation
 final class MapViewModel: NSObject, CLLocationManagerDelegate {
     let networkMonitor = NetworkMonitor()
     private let categoryKey = "map.lastCategory"
-
-    // MARK: - Buildings state
-    var buildings: [CampusBuilding] = []
-    var isLoadingBuildings: Bool = false
-    var buildingsError: String? = nil
-
+    
     var selectedBuilding: CampusBuilding? = nil
+    //guardar en cache
     var selectedCategory: BuildingCategory? = nil {
         didSet {
             Task {
@@ -41,32 +37,10 @@ final class MapViewModel: NSObject, CLLocationManagerDelegate {
                 selectedCategory = category
             }
         }
-        Task { await fetchBuildings() }
     }
-
-    // MARK: - Fetch buildings from API
-
-    @MainActor
-    func fetchBuildings() async {
-        isLoadingBuildings = true
-        buildingsError = nil
-        do {
-            let dtos = try await CampusAPI.fetchBuildings()
-            buildings = dtos.map { CampusBuilding(from: $0) }
-        } catch {
-            buildingsError = "No se pudieron cargar los edificios."
-            // Fall back to mock data so the map is never empty
-            if buildings.isEmpty {
-                buildings = CampusMockData.buildings
-            }
-        }
-        isLoadingBuildings = false
-    }
-
-    // MARK: - Filtered list used by the map
 
     var filteredBuildings: [CampusBuilding] {
-        buildings.filter { building in
+        CampusMockData.buildings.filter { building in
             let matchesCategory = selectedCategory == nil || building.category == selectedCategory
             let matchesSearch   = searchText.isEmpty || building.name.localizedCaseInsensitiveContains(searchText)
             return matchesCategory && matchesSearch
