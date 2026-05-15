@@ -15,20 +15,15 @@ struct VoiceTranslatorView: View {
 
                 ScrollView {
                     VStack(spacing: 16) {
-                        LanguageSelectorCard(
-                            sourceLanguage: viewModel.sourceLanguage,
-                            targetLanguage: viewModel.targetLanguage,
-                            onSwap: viewModel.swapLanguages
-                        )
-
+        
                         // Campo de texto editable
                         VStack(alignment: .leading, spacing: 8) {
-                            Text("Texto a traducir")
+                            Text("Escribe tu texto a traducir")
                                 .font(.caption)
                                 .foregroundStyle(.secondary)
 
                             TextEditor(text: $viewModel.transcription)
-                                .frame(minHeight: 80)
+                                .frame(minHeight: 250)
                                 .padding(8)
                                 .background(Color.white)
                                 .clipShape(RoundedRectangle(cornerRadius: 12))
@@ -63,18 +58,7 @@ struct VoiceTranslatorView: View {
                 }
             }
 
-            VStack {
-                Spacer()
-                RecordingPanel(
-                    isRecording: viewModel.isRecording,
-                    onToggle: {
-                        withAnimation(.spring(response: 0.3, dampingFraction: 0.6)) {
-                            viewModel.toggleRecording()
-                        }
-                    }
-                )
-            }
-            .ignoresSafeArea(edges: .bottom)
+            
         }
         .translationPresentation(
             isPresented: $viewModel.showTranslationPopup,

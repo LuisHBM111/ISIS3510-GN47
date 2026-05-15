@@ -1,8 +1,3 @@
-//
-//  HistoryView.swift
-//  CampusNavigationFrontend
-//
-
 import SwiftUI
 
 struct HistoryView: View {
@@ -18,7 +13,7 @@ struct HistoryView: View {
                         .foregroundColor(.gray)
                     Text(entry.translated)
                         .font(.system(size: 16, weight: .semibold))
-                    Text("\(entry.fromLanguage) → \(entry.toLanguage)")
+                    Text(entry.date, style: .date)
                         .font(.system(size: 11))
                         .foregroundColor(Color(hex: "D4A017"))
                 }
