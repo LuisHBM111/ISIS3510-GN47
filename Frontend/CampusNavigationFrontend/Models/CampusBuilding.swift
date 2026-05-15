@@ -25,7 +25,6 @@ enum BuildingCategory: String, CaseIterable {
     case library  = "Biblioteca"
     case sports   = "Deportes"
     case food     = "Comida"
-    case admin    = "Administrativo"
 
     var color: Color {
         switch self {
@@ -33,7 +32,6 @@ enum BuildingCategory: String, CaseIterable {
         case .library:  return Color(hex: "3B82F6")
         case .sports:   return Color(hex: "10B981")
         case .food:     return Color(hex: "F97316")
-        case .admin:    return Color(hex: "8B5CF6")
         }
     }
 
@@ -43,7 +41,6 @@ enum BuildingCategory: String, CaseIterable {
         case .library:  return "books.vertical.fill"
         case .sports:   return "figure.run"
         case .food:     return "fork.knife"
-        case .admin:    return "person.3.fill"
         }
     }
 }

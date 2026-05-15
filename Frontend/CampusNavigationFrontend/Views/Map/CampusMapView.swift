@@ -33,7 +33,6 @@ struct CampusMapView: View {
             }
             .mapStyle(isSatellite ? .imagery : .standard)
             .ignoresSafeArea()
-            // Location authorization is now handled in MapViewModel.init()
 
             // Controles de arriba
             VStack(spacing: 0) {
@@ -56,9 +55,6 @@ struct CampusMapView: View {
                         .padding(.top, 8)
                         .transition(.move(edge: .top).combined(with: .opacity))
                 }
-
-                categoryFilter
-                    .padding(.top, 10)
 
                 Spacer()
             }
@@ -114,10 +110,42 @@ struct CampusMapView: View {
         .animation(.easeInOut(duration: 0.25), value: showSearch)
     }
 
-    // MARK: - Top Bar
+    // MARK: - Top Bar (incluye filtro y lupa en la misma fila)
     var topBar: some View {
         HStack(spacing: 12) {
+
+            // Menú de filtros (izquierda)
+            Menu {
+                Button {
+                    withAnimation { vm.selectedCategory = nil }
+                } label: {
+                    Label("Todos", systemImage: "square.grid.2x2.fill")
+                }
+
+                ForEach(BuildingCategory.allCases, id: \.self) { cat in
+                    Button {
+                        withAnimation { vm.selectedCategory = cat }
+                    } label: {
+                        Label(cat.rawValue, systemImage: cat.icon)
+                    }
+                }
+            } label: {
+                HStack(spacing: 6) {
+                    Image(systemName: vm.selectedCategory?.icon ?? "list.bullet")
+                    Text(vm.selectedCategory?.rawValue ?? "Filtrar")
+                        .font(.system(size: 14, weight: .semibold))
+                }
+                .foregroundColor(.black)
+                .padding(.horizontal, 14)
+                .padding(.vertical, 8)
+                .background(Color.white)
+                .clipShape(Capsule())
+                .shadow(color: .black.opacity(0.1), radius: 6, x: 0, y: 2)
+            }
+
             Spacer()
+
+            // Botón lupa (derecha)
             Button(action: { withAnimation { showSearch.toggle() } }) {
                 Image(systemName: showSearch ? "xmark" : "magnifyingglass")
                     .font(.system(size: 15, weight: .semibold))
@@ -145,25 +173,6 @@ struct CampusMapView: View {
         .clipShape(RoundedRectangle(cornerRadius: 14))
         .shadow(color: .black.opacity(0.08), radius: 6, x: 0, y: 2)
     }
-
-    // MARK: - Filters
-    var categoryFilter: some View {
-        ScrollView(.horizontal, showsIndicators: false) {
-            HStack(spacing: 8) {
-                FilterChip(label: "Todos", icon: "square.grid.2x2.fill",
-                           color: Color(hex: "374151"), isSelected: vm.selectedCategory == nil) {
-                    withAnimation { vm.selectedCategory = nil }
-                }
-                ForEach(BuildingCategory.allCases, id: \.self) { cat in
-                    FilterChip(label: cat.rawValue, icon: cat.icon,
-                               color: cat.color, isSelected: vm.selectedCategory == cat) {
-                        withAnimation { vm.selectedCategory = vm.selectedCategory == cat ? nil : cat }
-                    }
-                }
-            }
-            .padding(.horizontal, 16)
-        }
-    }
 }
 
 // MARK: - Filter Chips
@@ -176,7 +185,9 @@ struct FilterChip: View {
     let action: () -> Void
 
     var body: some View {
-        Button(action: action) {
+        Button(action: {
+            action()
+        }) {
             HStack(spacing: 5) {
                 Image(systemName: icon)
                     .font(.system(size: 11, weight: .semibold))
@@ -188,6 +199,7 @@ struct FilterChip: View {
             .padding(.vertical, 8)
             .background(isSelected ? color : Color.white)
             .clipShape(Capsule())
+            .contentShape(Rectangle())
             .shadow(color: isSelected ? color.opacity(0.4) : Color.black.opacity(0.06),
                     radius: isSelected ? 6 : 3, x: 0, y: 2)
         }

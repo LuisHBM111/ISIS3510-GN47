@@ -31,7 +31,8 @@ struct CampusLoginView: View {
                 VStack(spacing: 16) {
                     CampusInputField(title: "Correo", text: $email, icon: "envelope.fill")
                     CampusInputField(title: "Contraseña", text: $password, icon: "lock.fill", isSecure: true)
-                }
+                }.foregroundStyle(CampusTheme.ink)
+                    .foregroundStyle(CampusTheme.muted)
 
                 if let err = appState.loginError {
                     Text(err)
@@ -55,6 +56,7 @@ struct CampusLoginView: View {
                         if appState.isAuthenticating { ProgressView() }
                         Text(appState.isAuthenticating ? "Procesando..." : (isSignUp ? "Crear cuenta" : "Ingresar"))
                             .font(.system(size: 18, weight: .bold))
+                            .foregroundStyle(CampusTheme.ink)
                     }
                     .foregroundStyle(CampusTheme.ink)
                     .frame(maxWidth: .infinity)
