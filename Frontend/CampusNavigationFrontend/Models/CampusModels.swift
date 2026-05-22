@@ -5,7 +5,7 @@ struct CampusUser {
     let email: String
 }
 
-struct ScheduleClass: Identifiable, Hashable {
+struct ScheduleClass: Identifiable, Hashable, Codable {
     let id = UUID()
     let day: String
     let title: String

@@ -25,6 +25,7 @@ final class CampusAppState {
             let prefix = resp.email.split(separator: "@").first.map(String.init) ?? "Estudiante"
             currentUser = CampusUser(name: prefix.capitalized, email: resp.email)
             isLoggedIn = true
+            await loadCachedSchedule(for: resp.localId)
         } catch {
             loginError = error.localizedDescription
         }
@@ -44,6 +45,7 @@ final class CampusAppState {
             let prefix = resp.email.split(separator: "@").first.map(String.init) ?? "Estudiante"
             currentUser = CampusUser(name: prefix.capitalized, email: resp.email)
             isLoggedIn = true
+            await loadCachedSchedule(for: resp.localId)
         } catch {
             loginError = error.localizedDescription
         }
@@ -82,5 +84,34 @@ final class CampusAppState {
             semester: currentSchedule.semester,
             classes: editableClasses
         )
+        if let userId = SessionManager.getInstance().localId {
+            let key = CampusCache.scheduleKey(for: userId)
+            Task { await CampusCache.shared.save(editableClasses, key: key) }
+        }
+    }
+
+    func removeClass(_ item: ScheduleClass) {
+        editableClasses.removeAll { $0.id == item.id }
+        currentSchedule = ScheduleTemplate(
+            name: "Horario Personalizado",
+            semester: currentSchedule.semester,
+            classes: editableClasses
+        )
+        if let userId = SessionManager.getInstance().localId {
+            let key = CampusCache.scheduleKey(for: userId)
+            Task { await CampusCache.shared.save(editableClasses, key: key) }
+        }
+    }
+
+    func loadCachedSchedule(for userId: String) async {
+        let key = CampusCache.scheduleKey(for: userId)
+        if let saved = await CampusCache.shared.load([ScheduleClass].self, key: key), !saved.isEmpty {
+            editableClasses = saved
+            currentSchedule = ScheduleTemplate(
+                name: "Horario Personalizado",
+                semester: currentSchedule.semester,
+                classes: saved
+            )
+        }
     }
 }

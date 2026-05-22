@@ -54,7 +54,8 @@ struct CreateScheduleView: View {
                 CurrentScheduleListView(
                     title: "Horario actual",
                     subtitle: "Las materias guardadas aquí alimentan el horario activo de la app.",
-                    classes: appState.currentSchedule.classes
+                    classes: appState.currentSchedule.classes,
+                    onDelete: { appState.removeClass($0) }
                 )
             }
             .padding(20)

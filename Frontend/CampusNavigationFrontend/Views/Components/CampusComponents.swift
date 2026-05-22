@@ -106,6 +106,7 @@ struct CurrentScheduleListView: View {
     let title: String
     let subtitle: String
     let classes: [ScheduleClass]
+    var onDelete: ((ScheduleClass) -> Void)? = nil
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
@@ -123,7 +124,16 @@ struct CurrentScheduleListView: View {
                     .foregroundStyle(CampusTheme.muted)
             } else {
                 ForEach(classes) { item in
-                    ScheduleRowView(item: item)
+                    HStack(spacing: 8) {
+                        ScheduleRowView(item: item)
+                        if let onDelete {
+                            Button { onDelete(item) } label: {
+                                Image(systemName: "trash")
+                                    .foregroundStyle(.red)
+                                    .padding(8)
+                            }
+                        }
+                    }
                 }
             }
         }
