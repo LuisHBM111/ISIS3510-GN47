@@ -26,6 +26,9 @@ final class CampusAppState {
             currentUser = CampusUser(name: prefix.capitalized, email: resp.email)
             isLoggedIn = true
             await loadCachedSchedule(for: resp.localId)
+            Task.detached(priority: .background) {
+                await RoutePrefetchService.prefetchTopRoutes()
+            }
         } catch {
             loginError = error.localizedDescription
         }
@@ -46,6 +49,9 @@ final class CampusAppState {
             currentUser = CampusUser(name: prefix.capitalized, email: resp.email)
             isLoggedIn = true
             await loadCachedSchedule(for: resp.localId)
+            Task.detached(priority: .background) {
+                await RoutePrefetchService.prefetchTopRoutes()
+            }
         } catch {
             loginError = error.localizedDescription
         }
