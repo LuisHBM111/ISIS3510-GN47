@@ -1,12 +1,11 @@
 
-
 import Foundation
-
 enum RoutePrefetchService {
 
     static let prefetchLimit = 5
 
     static func prefetchTopRoutes() async {
+        //rutas cache
                 let counts = await CampusCache.shared.load(
             [String: Int].self,
             key: CampusCache.routeCountsKey
@@ -14,6 +13,7 @@ enum RoutePrefetchService {
 
         guard !counts.isEmpty else { return }
 
+        //
         let topPairs: [(from: String, to: String)] = counts
             .sorted { $0.value > $1.value }
             .prefix(prefetchLimit)
@@ -29,10 +29,12 @@ enum RoutePrefetchService {
         await withTaskGroup(of: Void.self) { group in
             for pair in topPairs {
                 group.addTask {
+                    
                     guard let fresh = try? await CampusAPI.route(from: pair.from, to: pair.to) else {
                         return
                     }
                     let key = CampusCache.routeKey(from: pair.from, to: pair.to)
+                    
                     await CampusCache.shared.save(fresh, key: key)
                 }
             }

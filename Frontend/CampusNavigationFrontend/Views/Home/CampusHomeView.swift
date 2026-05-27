@@ -55,6 +55,7 @@ struct CampusHomeView: View {
                             icon: "map.fill"
                         )
                     }
+
                 }
                 .padding(20)
             }

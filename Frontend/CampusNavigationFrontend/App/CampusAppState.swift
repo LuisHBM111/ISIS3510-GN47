@@ -26,6 +26,9 @@ final class CampusAppState {
             currentUser = CampusUser(name: prefix.capitalized, email: resp.email)
             isLoggedIn = true
             await loadCachedSchedule(for: resp.localId)
+            //para multi-thread de calcular rutas
+            //aca uso task detach porque es @MainActor, entonces nun task{} bloquearia el Main -> corre en thread pool
+            //background le dice que priorice otras cosas
             Task.detached(priority: .background) {
                 await RoutePrefetchService.prefetchTopRoutes()
             }
@@ -64,11 +67,16 @@ final class CampusAppState {
     }
 
     func loadSchedule(_ template: ScheduleTemplate) {
+        let start = Date()
         currentSchedule = template
         editableClasses = template.classes
+        Task {
+            await TimingAnalyticsViewModel.shared.record(action: "schedule", start: start)
+        }
     }
 
     func addClass(_ draft: ScheduleDraft) {
+        let start = Date()
         let newClass = ScheduleClass(
             day: draft.day,
             title: draft.title,
@@ -90,9 +98,12 @@ final class CampusAppState {
             semester: currentSchedule.semester,
             classes: editableClasses
         )
-        if let userId = SessionManager.getInstance().localId {
-            let key = CampusCache.scheduleKey(for: userId)
-            Task { await CampusCache.shared.save(editableClasses, key: key) }
+        Task {
+            if let userId = SessionManager.getInstance().localId {
+                let key = CampusCache.scheduleKey(for: userId)
+                await CampusCache.shared.save(editableClasses, key: key)
+            }
+            await TimingAnalyticsViewModel.shared.record(action: "schedule", start: start)
         }
     }
 

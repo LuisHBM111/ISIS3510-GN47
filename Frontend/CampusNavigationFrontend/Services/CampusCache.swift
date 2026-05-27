@@ -19,6 +19,7 @@ actor CampusCache {
         "route.\(from.lowercased()).\(to.lowercased())"
     }
     static let routeCountsKey = "route.counts"
+    static let timingRecordsKey = "timing.records"
 
     static func scheduleKey(for userId: String) -> String {
         "schedule.\(userId)"

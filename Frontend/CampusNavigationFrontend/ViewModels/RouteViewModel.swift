@@ -45,7 +45,9 @@ final class RouteViewModel {
         }
 
         do {
+            let routeStart = Date()
             let fresh = try await CampusAPI.route(from: o, to: d)
+            await TimingAnalyticsViewModel.shared.record(action: "route", start: routeStart)
             route = fresh
             await CampusCache.shared.save(fresh, key: key)
             await analytics.record(from: o, to: d)

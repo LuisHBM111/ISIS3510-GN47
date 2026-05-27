@@ -2,7 +2,7 @@ import Foundation
 import AVFoundation
 import NaturalLanguage
 import Observation
-import Translation
+import OSLog
 #if os(iOS)
 import UIKit
 #endif
@@ -12,53 +12,34 @@ import UIKit
 final class VoiceTranslatorViewModel {
     var transcription: String = ""
     var translation: String = ""
-    var isRecording: Bool = false
-    var history: [TranslationEntry] = []
     var showTranslationPopup: Bool = false
 
     let networkMonitor = NetworkMonitor()
-    private let historyKey = "translator.history"
     private let synthesizer = AVSpeechSynthesizer()
-
-    init() {
-        Task {
-            let cached = await CampusCache.shared.load([TranslationEntry].self, key: historyKey)
-            history = cached ?? []
-        }
-    }
+    private var translationStartTime: Date?
+    private let timingLogger = Logger(subsystem: "com.campusnavigation", category: "timing")
 
     // MARK: - Intents
 
     func triggerTranslation() {
-        guard !transcription.isEmpty else { return }
+        translationStartTime = Date()
         showTranslationPopup = true
     }
 
+    /// Called by translationPresentation when the user taps "Reemplazar por la traducción"
     func didReceiveTranslation(_ result: String) {
+        if let start = translationStartTime {
+            translationStartTime = nil
+            Task { await TimingAnalyticsViewModel.shared.record(action: "translation", start: start) }
+        }
         translation = result
         showTranslationPopup = false
-
-        let entry = TranslationEntry(
-            original: transcription,
-            translated: result,
-            date: Date()
-        )
-        history.insert(entry, at: 0)
-
-        Task {
-            await CampusCache.shared.save(history, key: historyKey)
-        }
-    }
-
-    func toggleRecording() {
-        isRecording.toggle()
-        if !isRecording && !transcription.isEmpty {
-            triggerTranslation()
-        }
+        TranslationHistory.shared.add(original: transcription, translated: result)
     }
 
     func speakTranslation() {
         guard !translation.isEmpty else { return }
+
         if synthesizer.isSpeaking { synthesizer.stopSpeaking(at: .immediate) }
 
         let recognizer = NLLanguageRecognizer()
