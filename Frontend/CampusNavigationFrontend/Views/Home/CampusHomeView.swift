@@ -56,6 +56,19 @@ struct CampusHomeView: View {
                         )
                     }
 
+                    Button {
+                        path.append(.timingDashboard)
+                    } label: {
+                        HomeActionCard(
+                            title: "Developer Dashboard",
+                            subtitle: "Tiempos por feature",
+                            icon: "chart.bar.xaxis",
+                            iconBackgroundColor: Color(hex: "000000"), // Fondo del icono
+                            iconColor: Color(hex: "FFEE32") // Color del icono
+                        )
+                    }
+                    
+
                 }
                 .padding(20)
             }
@@ -73,6 +86,8 @@ struct CampusHomeView: View {
                     VoiceTranslatorView()
                 case .mapView:
                     CampusMapView()
+                case .timingDashboard:
+                    TimingDashboardView()
                 }
             }
         }
