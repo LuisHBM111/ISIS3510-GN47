@@ -75,6 +75,7 @@ private struct SectionUsage: Identifiable {
 struct TimingDashboardView: View {
 
     private var records: [TimingRecord] { TimingAnalyticsViewModel.shared.records }
+    @State private var networkMonitor = NetworkMonitor()
 
     // Average duration per feature
     private var featureAverages: [FeatureAvg] {
@@ -121,6 +122,22 @@ struct TimingDashboardView: View {
 
     var body: some View {
         ScrollView {
+            
+            //Conectividad
+            VStack(spacing: 0) {
+                if !networkMonitor.isConnected {
+                    HStack{
+                        Image(systemName: "wifi.slash")
+                        Text("Sin conexión a internet - se están mostrando los datos guardados")
+                            
+                    }
+                
+                    .foregroundStyle(CampusTheme.ink)
+                    .padding()
+                    .frame(maxWidth: .infinity)
+                    .background(CampusTheme.primary.opacity(0.35))
+                }
+            }
             VStack(alignment: .leading, spacing: 24) {
 
                 // MARK: Header
@@ -261,6 +278,8 @@ struct TimingDashboardView: View {
                         }
                     }
 
+                    // MARK: Exportar reporte
+                    exportButton
                 }
             }
             .padding(20)
@@ -270,6 +289,20 @@ struct TimingDashboardView: View {
     }
 
     // MARK: - Subviews
+
+    @ViewBuilder
+    private var exportButton: some View {
+        if let url = try? ReportExporter.generateReportURL() {
+            ShareLink(item: url, preview: SharePreview("campus_report.json", image: Image(systemName: "doc.text"))) {
+                Label("Exportar reporte JSON", systemImage: "square.and.arrow.up")
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 12)
+                    .background(CampusTheme.ink)
+                    .foregroundStyle(.white)
+                    .clipShape(RoundedRectangle(cornerRadius: 12))
+            }
+        }
+    }
 
     private func summaryCard(title: String, value: String) -> some View {
         VStack(alignment: .leading, spacing: 6) {

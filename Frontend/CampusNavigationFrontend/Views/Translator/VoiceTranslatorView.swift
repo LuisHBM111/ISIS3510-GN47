@@ -9,6 +9,7 @@ struct VoiceTranslatorView: View {
             Color(hex: "F2F3F5")
                 .ignoresSafeArea()
 
+            //Conectividad
             VStack(spacing: 0) {
                 TopBarView()
 

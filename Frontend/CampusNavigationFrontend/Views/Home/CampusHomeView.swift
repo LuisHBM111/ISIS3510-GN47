@@ -4,10 +4,28 @@ struct CampusHomeView: View {
     @Environment(CampusAppState.self) private var appState
     @State private var path: [CampusDestination] = []
     @State private var showSchedule = false
+    @State private var networkMonitor = NetworkMonitor()
 
     var body: some View {
+        
         NavigationStack(path: $path) {
             ScrollView {
+                //Conectividad
+                VStack(spacing: 0) {
+                    if !networkMonitor.isConnected {
+                        HStack{
+                            Image(systemName: "wifi.slash")
+                            Text("Sin conexión a internet - puede que no todas las funcionalidades sirvan correctamente")
+                                
+                        }
+                    
+                        .foregroundStyle(CampusTheme.ink)
+                        .padding()
+                        .frame(maxWidth: .infinity)
+                        .background(CampusTheme.primary.opacity(0.35))
+                    }
+                }
+                    
                 VStack(alignment: .leading, spacing: 20) {
                     header
                     summaryCard
