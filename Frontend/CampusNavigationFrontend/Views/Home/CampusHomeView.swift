@@ -4,10 +4,28 @@ struct CampusHomeView: View {
     @Environment(CampusAppState.self) private var appState
     @State private var path: [CampusDestination] = []
     @State private var showSchedule = false
+    @State private var networkMonitor = NetworkMonitor()
 
     var body: some View {
+        
         NavigationStack(path: $path) {
             ScrollView {
+                //Conectividad
+                VStack(spacing: 0) {
+                    if !networkMonitor.isConnected {
+                        HStack{
+                            Image(systemName: "wifi.slash")
+                            Text("Sin conexión a internet - puede que no todas las funcionalidades sirvan correctamente")
+                                
+                        }
+                    
+                        .foregroundStyle(CampusTheme.ink)
+                        .padding()
+                        .frame(maxWidth: .infinity)
+                        .background(CampusTheme.primary.opacity(0.35))
+                    }
+                }
+                    
                 VStack(alignment: .leading, spacing: 20) {
                     header
                     summaryCard
@@ -17,6 +35,7 @@ struct CampusHomeView: View {
                         .foregroundStyle(CampusTheme.ink)
 
                     Button {
+                        UsageTracker.shared.record(section: "route")
                         path.append(.route)
                     } label: {
                         HomeActionCard(
@@ -27,6 +46,7 @@ struct CampusHomeView: View {
                     }
 
                     Button {
+                        UsageTracker.shared.record(section: "schedule")
                         path.append(.createSchedule)
                     } label: {
                         HomeActionCard(
@@ -37,6 +57,7 @@ struct CampusHomeView: View {
                     }
 
                     Button {
+                        UsageTracker.shared.record(section: "translator")
                         path.append(.translator)
                     } label: {
                         HomeActionCard(
@@ -47,6 +68,7 @@ struct CampusHomeView: View {
                     }
 
                     Button {
+                        UsageTracker.shared.record(section: "map")
                         path.append(.mapView)
                     } label: {
                         HomeActionCard(
@@ -55,6 +77,19 @@ struct CampusHomeView: View {
                             icon: "map.fill"
                         )
                     }
+
+                    Button {
+                        path.append(.timingDashboard)
+                    } label: {
+                        HomeActionCard(
+                            title: "Developer Dashboard",
+                            subtitle: "Tiempos por feature",
+                            icon: "chart.bar.xaxis",
+                            iconBackgroundColor: Color(hex: "000000"), // Fondo del icono
+                            iconColor: Color(hex: "FFEE32") // Color del icono
+                        )
+                    }
+                    
 
                 }
                 .padding(20)
@@ -73,6 +108,8 @@ struct CampusHomeView: View {
                     VoiceTranslatorView()
                 case .mapView:
                     CampusMapView()
+                case .timingDashboard:
+                    TimingDashboardView()
                 }
             }
         }

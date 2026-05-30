@@ -31,44 +31,47 @@ struct CampusInputField: View {
     }
 }
 
-struct HomeActionCard: View {
-    let title: String
-    let subtitle: String
-    let icon: String
 
-    var body: some View {
-        HStack(spacing: 14) {
-            RoundedRectangle(cornerRadius: 18)
-                .fill(CampusTheme.primary)
-                .frame(width: 58, height: 58)
-                .overlay(
-                    Image(systemName: icon)
-                        .font(.title2.bold())
+    struct HomeActionCard: View {
+        let title: String
+        let subtitle: String
+        let icon: String
+        var iconBackgroundColor: Color = CampusTheme.primary
+        var iconColor: Color = CampusTheme.ink
+
+        var body: some View {
+            HStack(spacing: 14) {
+                RoundedRectangle(cornerRadius: 18)
+                    .fill(iconBackgroundColor)
+                    .frame(width: 58, height: 58)
+                    .overlay(
+                        Image(systemName: icon)
+                            .font(.title2.bold())
+                            .foregroundStyle(iconColor)
+                    )
+
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(title)
+                        .font(.headline.bold())
                         .foregroundStyle(CampusTheme.ink)
-                )
+                    Text(subtitle)
+                        .font(.subheadline)
+                        .foregroundStyle(CampusTheme.muted)
+                }
 
-            VStack(alignment: .leading, spacing: 4) {
-                Text(title)
-                    .font(.headline.bold())
-                    .foregroundStyle(CampusTheme.ink)
-                Text(subtitle)
-                    .font(.subheadline)
+                Spacer()
+
+                Image(systemName: "chevron.right")
                     .foregroundStyle(CampusTheme.muted)
             }
-
-            Spacer()
-
-            Image(systemName: "chevron.right")
-                .foregroundStyle(CampusTheme.muted)
+            .padding(18)
+            .background(CampusTheme.surface, in: RoundedRectangle(cornerRadius: 24))
+            .overlay(
+                RoundedRectangle(cornerRadius: 24)
+                    .stroke(CampusTheme.border, lineWidth: 1)
+            )
         }
-        .padding(18)
-        .background(CampusTheme.surface, in: RoundedRectangle(cornerRadius: 24))
-        .overlay(
-            RoundedRectangle(cornerRadius: 24)
-                .stroke(CampusTheme.border, lineWidth: 1)
-        )
     }
-}
 
 struct ScheduleRowView: View {
     let item: ScheduleClass
