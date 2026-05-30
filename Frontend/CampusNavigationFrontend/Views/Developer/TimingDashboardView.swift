@@ -44,6 +44,32 @@ private struct HourPoint: Identifiable {
     }
 }
 
+private struct SectionUsage: Identifiable {
+    let id = UUID()
+    let section: String
+    let count: Int
+
+    var label: String {
+        switch section {
+        case "route":       return "Ruta"
+        case "translator":  return "Traducción"
+        case "schedule":    return "Horario"
+        case "map":         return "Mapa"
+        default:            return section.capitalized
+        }
+    }
+
+    var color: Color {
+        switch section {
+        case "route":       return Color(hex: "3B82F6")
+        case "translator":  return Color(hex: "D4A017")
+        case "schedule":    return Color(hex: "10B981")
+        case "map":         return Color(hex: "8B5CF6")
+        default:            return .gray
+        }
+    }
+}
+
 // MARK: - Dashboard
 
 struct TimingDashboardView: View {
@@ -154,9 +180,8 @@ struct TimingDashboardView: View {
                         }
                         .frame(height: 200)
                     }
-
-
-                    // MARK: Respuesta a la pregunta
+                    
+                    // MARK: Respuesta a BQ tiempos
                     if let slowest = slowestAtPeak, let peak = peakHour {
                         VStack(alignment: .leading, spacing: 8) {
                             Text("¿Cuál feature tiene el mayor tiempo de respuesta durante la hora pico?")
@@ -178,6 +203,64 @@ struct TimingDashboardView: View {
                         .clipShape(RoundedRectangle(cornerRadius: 14))
                         .overlay(RoundedRectangle(cornerRadius: 14).stroke(Color(hex: "FCD34D"), lineWidth: 1))
                     }
+
+
+                    // MARK: Grafica de uso por sección
+                    let usageCounts = UsageTracker.shared.counts
+                    if !usageCounts.isEmpty {
+                        let usageData = usageCounts
+                            .map { SectionUsage(section: $0.key, count: $0.value) }
+                            .sorted { $0.count > $1.count }
+
+                        chartCard(title: "Secciones más visitadas", subtitle: "taps totales por sección") {
+                            Chart(usageData) { item in
+                                BarMark(
+                                    x: .value("Sección", item.label),
+                                    y: .value("Taps", item.count)
+                                )
+                                .foregroundStyle(item.color)
+                                .cornerRadius(6)
+                                .annotation(position: .top) {
+                                    Text("\(item.count)")
+                                        .font(.caption2.weight(.semibold))
+                                        .foregroundStyle(CampusTheme.muted)
+                                }
+                            }
+                            .chartYAxis {
+                                AxisMarks(values: .automatic(desiredCount: 4)) { value in
+                                    AxisGridLine()
+                                    AxisValueLabel {
+                                        if let n = value.as(Int.self) {
+                                            Text("\(n)").font(.caption2)
+                                        }
+                                    }
+                                }
+                            }
+                            .frame(height: 200)
+                        }
+
+                        if let mostUsed = usageData.first {
+                            VStack(alignment: .leading, spacing: 8) {
+                                Text("¿Cuál es el lugar más eficiente para publicitar?")
+                                    .font(.headline)
+                                    .foregroundStyle(Color(hex: "D4A017"))
+                                Text("La sección más visitada es ")
+                                    .font(.subheadline)
+                                    .foregroundStyle(CampusTheme.ink)
+                                + Text(mostUsed.label)
+                                    .font(.subheadline.weight(.bold))
+                                    .foregroundStyle(CampusTheme.ink)
+                                + Text(" con \(mostUsed.count) taps. Es el punto de mayor visibilidad para mostrar publicidad o recomendaciones de negocios cercanos.")
+                                    .font(.subheadline)
+                                    .foregroundStyle(CampusTheme.ink)
+                            }
+                            .padding(16)
+                            .background(Color(hex: "FFFBEB"))
+                            .clipShape(RoundedRectangle(cornerRadius: 14))
+                            .overlay(RoundedRectangle(cornerRadius: 14).stroke(Color(hex: "FCD34D"), lineWidth: 1))
+                        }
+                    }
+
                 }
             }
             .padding(20)

@@ -17,6 +17,7 @@ struct CampusHomeView: View {
                         .foregroundStyle(CampusTheme.ink)
 
                     Button {
+                        UsageTracker.shared.record(section: "route")
                         path.append(.route)
                     } label: {
                         HomeActionCard(
@@ -27,6 +28,7 @@ struct CampusHomeView: View {
                     }
 
                     Button {
+                        UsageTracker.shared.record(section: "schedule")
                         path.append(.createSchedule)
                     } label: {
                         HomeActionCard(
@@ -37,6 +39,7 @@ struct CampusHomeView: View {
                     }
 
                     Button {
+                        UsageTracker.shared.record(section: "translator")
                         path.append(.translator)
                     } label: {
                         HomeActionCard(
@@ -47,6 +50,7 @@ struct CampusHomeView: View {
                     }
 
                     Button {
+                        UsageTracker.shared.record(section: "map")
                         path.append(.mapView)
                     } label: {
                         HomeActionCard(
