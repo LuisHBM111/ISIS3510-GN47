@@ -76,6 +76,9 @@ struct TimingDashboardView: View {
 
     private var records: [TimingRecord] { TimingAnalyticsViewModel.shared.records }
     @State private var networkMonitor = NetworkMonitor()
+    @State private var reportURL: URL? = nil
+    @State private var isExporting: Bool = false
+    @State private var exportError: Bool = false
 
     // Average duration per feature
     private var featureAverages: [FeatureAvg] {
@@ -292,15 +295,48 @@ struct TimingDashboardView: View {
 
     @ViewBuilder
     private var exportButton: some View {
-        if let url = try? ReportExporter.generateReportURL() {
+        if let url = reportURL {
+            // Report already generated — show ShareLink directly
             ShareLink(item: url, preview: SharePreview("campus_report.json", image: Image(systemName: "doc.text"))) {
-                Label("Exportar reporte JSON", systemImage: "square.and.arrow.up")
+                Label("Compartir reporte JSON", systemImage: "square.and.arrow.up")
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 12)
                     .background(CampusTheme.ink)
                     .foregroundStyle(.white)
                     .clipShape(RoundedRectangle(cornerRadius: 12))
             }
+        } else {
+            Button {
+                isExporting = true
+                exportError = false
+                // GCD: encoding + FileManager write on background queue
+                ReportExporter.generateReport { result in
+                    // GCD: back on main queue to update UI
+                    isExporting = false
+                    switch result {
+                    case .success(let url): reportURL = url
+                    case .failure:         exportError = true
+                    }
+                }
+            } label: {
+                HStack(spacing: 8) {
+                    if isExporting {
+                        ProgressView()
+                            .tint(.white)
+                            .scaleEffect(0.8)
+                        Text("Generando reporte...")
+                    } else {
+                        Image(systemName: exportError ? "exclamationmark.triangle" : "square.and.arrow.up")
+                        Text(exportError ? "Error al exportar — reintentar" : "Exportar reporte JSON")
+                    }
+                }
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 12)
+                .background(exportError ? Color.red.opacity(0.8) : CampusTheme.ink)
+                .foregroundStyle(.white)
+                .clipShape(RoundedRectangle(cornerRadius: 12))
+            }
+            .disabled(isExporting)
         }
     }
 

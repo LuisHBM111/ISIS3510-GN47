@@ -20,12 +20,33 @@ struct ReportSummary: Codable {
 
 enum ReportExporter {
 
-    /// Builds the report, writes it to the Documents directory via FileManager,
-    /// and returns the file URL so ShareLink can share it.
-    static func generateReportURL() throws -> URL {
+    static func generateReport(completion: @escaping (Result<URL, Error>) -> Void) {
+
+        // Snapshot data on the main thread before going to background
         let records = TimingAnalyticsViewModel.shared.records
         let counts  = UsageTracker.shared.counts
 
+        // Move encoding + disk write to a background utility queue
+        DispatchQueue.global(qos: .utility).async {
+            do {
+                let url = try buildAndWrite(records: records, counts: counts)
+
+                // Return to main queue to hand off the URL to the UI
+                DispatchQueue.main.async {
+                    completion(.success(url))
+                }
+            } catch {
+                DispatchQueue.main.async {
+                    completion(.failure(error))
+                }
+            }
+        }
+    }
+
+    // MARK: - Private helpers
+
+
+    private static func buildAndWrite(records: [TimingRecord], counts: [String: Int]) throws -> URL {
         let summary = ReportSummary(
             totalTimingRecords: records.count,
             peakHour: peakHour(from: records),
@@ -45,15 +66,13 @@ enum ReportExporter {
         encoder.dateEncodingStrategy = .iso8601
         let data = try encoder.encode(report)
 
-        // Write to Documents using FileManager
         let documents = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
         let fileURL = documents.appendingPathComponent("campus_report.json")
+        // .atomic ensures the old file is never left in a corrupt state if the write fails mid-way
         try data.write(to: fileURL, options: .atomic)
 
         return fileURL
     }
-
-    // MARK: - Private helpers
 
     private static func peakHour(from records: [TimingRecord]) -> Int? {
         let counts = Dictionary(grouping: records) {
