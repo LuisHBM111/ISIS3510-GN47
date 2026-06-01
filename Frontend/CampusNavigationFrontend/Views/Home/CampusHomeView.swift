@@ -79,6 +79,17 @@ struct CampusHomeView: View {
                     }
 
                     Button {
+                        UsageTracker.shared.record(section: "todo")
+                        path.append(.toDoList)
+                    } label: {
+                        HomeActionCard(
+                            title: "Mis Tareas",
+                            subtitle: "Lista de tareas pendientes",
+                            icon: "checklist"
+                        )
+                    }
+
+                    Button {
                         path.append(.timingDashboard)
                     } label: {
                         HomeActionCard(
@@ -110,6 +121,8 @@ struct CampusHomeView: View {
                     CampusMapView()
                 case .timingDashboard:
                     TimingDashboardView()
+                case .toDoList:
+                    ToDoListView()
                 }
             }
         }

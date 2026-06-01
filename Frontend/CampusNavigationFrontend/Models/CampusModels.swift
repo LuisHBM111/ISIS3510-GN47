@@ -44,4 +44,5 @@ enum CampusDestination: Hashable {
     case translator
     case mapView
     case timingDashboard
+    case toDoList
 }

@@ -4,12 +4,13 @@ import Translation
 struct VoiceTranslatorView: View {
     @State private var viewModel = VoiceTranslatorViewModel()
 
+    @AppStorage("historyLimit") private var historyLimit: Int = 5
+
     var body: some View {
         ZStack {
             Color(hex: "F2F3F5")
                 .ignoresSafeArea()
 
-            //Conectividad
             VStack(spacing: 0) {
                 TopBarView()
 
@@ -72,13 +73,24 @@ struct VoiceTranslatorView: View {
                             )
                         }
 
-                        // MARK: History (reads singleton — persists across navigation)
-                        let entries = TranslationHistory.shared.entries
+                        // MARK: History
+                        let entries = Array(TranslationHistory.shared.entries.prefix(historyLimit))
                         if !entries.isEmpty {
                             VStack(alignment: .leading, spacing: 10) {
-                                Text("Historial")
-                                    .font(.headline)
-                                    .foregroundStyle(CampusTheme.ink)
+                                HStack {
+                                    Text("Historial")
+                                        .font(.headline)
+                                        .foregroundStyle(CampusTheme.ink)
+                                    Spacer()
+                                    // @AppStorage Picker — persiste entre sesiones
+                                    Picker("Entradas", selection: $historyLimit) {
+                                        Text("3").tag(3)
+                                        Text("5").tag(5)
+                                        Text("10").tag(10)
+                                    }
+                                    .pickerStyle(.segmented)
+                                    .frame(width: 120)
+                                }
 
                                 ForEach(entries) { entry in
                                     VStack(alignment: .leading, spacing: 4) {

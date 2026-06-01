@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import SwiftData
 
 @main
 struct CampusNavigationFrontendApp: App {
@@ -13,6 +14,7 @@ struct CampusNavigationFrontendApp: App {
         WindowGroup {
             CampusRootView()
         }
+        .modelContainer(for: ToDoItem.self)
     }
 }
 

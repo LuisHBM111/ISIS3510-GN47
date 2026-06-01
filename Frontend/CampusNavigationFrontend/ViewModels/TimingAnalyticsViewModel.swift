@@ -33,14 +33,11 @@ final class TimingAnalyticsViewModel {
         logger.info("[\(action)] \(String(format: "%.3f", elapsed))s — total records: \(self.records.count)")
     }
 
-    /// Stores the current time as the start of an in-flight action.
-    /// Call this synchronously on the main actor right before triggering the action.
     func beginTiming(for action: String) {
         pendingStarts[action] = Date()
     }
 
-    /// Finalises the timing for an action previously started with `beginTiming(for:)`.
-    /// Reads and removes the stored start time, then persists the record.
+
     func commitTiming(for action: String) async {
         guard let start = pendingStarts.removeValue(forKey: action) else { return }
         await record(action: action, start: start)
