@@ -1,10 +1,17 @@
 import Foundation
 import Observation
 
+struct FeatureStat: Identifiable {
+    let id = UUID()
+    let name: String
+    let count: Int
+}
+
 @MainActor
 @Observable
 final class CampusAppState {
     var isLoggedIn = false
+    var topFeatures: [FeatureStat] = []
     var currentUser: CampusUser?
     var currentSchedule: ScheduleTemplate = CampusMockData.templates[0]
     var editableClasses: [ScheduleClass] = CampusMockData.templates[0].classes
@@ -130,5 +137,20 @@ final class CampusAppState {
                 classes: saved
             )
         }
+        await loadFeatureStats()
+    }
+
+    func trackFeature(_ name: String) async {
+        var counts = await CampusCache.shared.load([String: Int].self, key: CampusCache.featureCountsKey) ?? [:]
+        counts[name, default: 0] += 1
+        await CampusCache.shared.save(counts, key: CampusCache.featureCountsKey)
+        await loadFeatureStats()
+    }
+
+    func loadFeatureStats() async {
+        let counts = await CampusCache.shared.load([String: Int].self, key: CampusCache.featureCountsKey) ?? [:]
+        topFeatures = counts
+            .sorted { $0.value > $1.value }
+            .map { FeatureStat(name: $0.key, count: $0.value) }
     }
 }

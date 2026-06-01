@@ -5,6 +5,9 @@ struct CampusHomeView: View {
     @State private var path: [CampusDestination] = []
     @State private var showSchedule = false
     @State private var networkMonitor = NetworkMonitor()
+    @State private var weather = WeatherViewModel()
+    @State private var prefs = UserPreferences()
+    @State private var showPreferences = false
 
     var body: some View {
         
@@ -34,59 +37,74 @@ struct CampusHomeView: View {
                         .font(.system(size: 22, weight: .bold))
                         .foregroundStyle(CampusTheme.ink)
 
-                    Button {
-                        UsageTracker.shared.record(section: "route")
-                        path.append(.route)
-                    } label: {
-                        HomeActionCard(
-                            title: "Planear Ruta",
-                            subtitle: "Planea la ruta más eficiente a tu salón",
-                            icon: "point.topleft.down.curvedto.point.bottomright.up.fill"
-                        )
+                    if prefs.showRuta {
+                        Button {
+                            UsageTracker.shared.record(section: "route")
+                            Task { await appState.trackFeature("Planear Ruta") }
+                            path.append(.route)
+                        } label: {
+                            HomeActionCard(
+                                title: "Planear Ruta",
+                                subtitle: "Planea la ruta más eficiente a tu salón",
+                                icon: "point.topleft.down.curvedto.point.bottomright.up.fill"
+                            )
+                        }
                     }
 
-                    Button {
-                        UsageTracker.shared.record(section: "schedule")
-                        path.append(.createSchedule)
-                    } label: {
-                        HomeActionCard(
-                            title: "Crear Horario",
-                            subtitle: "Añade las materias que ves este semestre para que te ayudemos a llegar más rápido",
-                            icon: "square.and.pencil"
-                        )
+                    if prefs.showHorario {
+                        Button {
+                            UsageTracker.shared.record(section: "schedule")
+                            Task { await appState.trackFeature("Crear Horario") }
+                            path.append(.createSchedule)
+                        } label: {
+                            HomeActionCard(
+                                title: "Crear Horario",
+                                subtitle: "Añade las materias que ves este semestre para que te ayudemos a llegar más rápido",
+                                icon: "square.and.pencil"
+                            )
+                        }
                     }
 
-                    Button {
-                        UsageTracker.shared.record(section: "translator")
-                        path.append(.translator)
-                    } label: {
-                        HomeActionCard(
-                            title: "Traductor de Voz",
-                            subtitle: "Traductor de voz en tiempo real",
-                            icon: "translate"
-                        )
+                    if prefs.showTraductor {
+                        Button {
+                            UsageTracker.shared.record(section: "translator")
+                            Task { await appState.trackFeature("Traductor de Voz") }
+                            path.append(.translator)
+                        } label: {
+                            HomeActionCard(
+                                title: "Traductor de Voz",
+                                subtitle: "Traductor de voz en tiempo real",
+                                icon: "translate"
+                            )
+                        }
                     }
 
-                    Button {
-                        UsageTracker.shared.record(section: "map")
-                        path.append(.mapView)
-                    } label: {
-                        HomeActionCard(
-                            title: "Mapa",
-                            subtitle: "Mapa del campus",
-                            icon: "map.fill"
-                        )
+                    if prefs.showMapa {
+                        Button {
+                            UsageTracker.shared.record(section: "map")
+                            Task { await appState.trackFeature("Mapa") }
+                            path.append(.mapView)
+                        } label: {
+                            HomeActionCard(
+                                title: "Mapa",
+                                subtitle: "Mapa del campus",
+                                icon: "map.fill"
+                            )
+                        }
                     }
 
-                    Button {
-                        UsageTracker.shared.record(section: "todo")
-                        path.append(.toDoList)
-                    } label: {
-                        HomeActionCard(
-                            title: "Mis Tareas",
-                            subtitle: "Lista de tareas pendientes",
-                            icon: "checklist"
-                        )
+                    if prefs.showTareas {
+                        Button {
+                            UsageTracker.shared.record(section: "todo")
+                            Task { await appState.trackFeature("Mis Tareas") }
+                            path.append(.toDoList)
+                        } label: {
+                            HomeActionCard(
+                                title: "Mis Tareas",
+                                subtitle: "Lista de tareas pendientes",
+                                icon: "checklist"
+                            )
+                        }
                     }
 
                     Button {
@@ -96,11 +114,14 @@ struct CampusHomeView: View {
                             title: "Developer Dashboard",
                             subtitle: "Tiempos por feature",
                             icon: "chart.bar.xaxis",
-                            iconBackgroundColor: Color(hex: "000000"), // Fondo del icono
-                            iconColor: Color(hex: "FFEE32") // Color del icono
+                            iconBackgroundColor: Color(hex: "000000"),
+                            iconColor: Color(hex: "FFEE32")
                         )
                     }
-                    
+
+                    if !appState.topFeatures.isEmpty && prefs.showStats {
+                        featureStatsCard
+                    }
 
                 }
                 .padding(20)
@@ -128,6 +149,36 @@ struct CampusHomeView: View {
         }
     }
 
+    private var featureStatsCard: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text("Funcionalidades más usadas")
+                .font(.headline.bold())
+                .foregroundStyle(CampusTheme.ink)
+
+            HStack {
+                Text("Funcionalidad").font(.caption.bold()).foregroundStyle(CampusTheme.muted)
+                Spacer()
+                Text("Accesos").font(.caption.bold()).foregroundStyle(CampusTheme.muted)
+            }
+
+            ForEach(appState.topFeatures) { stat in
+                HStack {
+                    Text(stat.name).font(.subheadline).foregroundStyle(CampusTheme.ink)
+                    Spacer()
+                    Text("\(stat.count)")
+                        .font(.subheadline.bold())
+                        .foregroundStyle(CampusTheme.ink)
+                        .padding(.horizontal, 12)
+                        .padding(.vertical, 4)
+                        .background(CampusTheme.primary.opacity(0.8), in: Capsule())
+                }
+            }
+        }
+        .padding(18)
+        .background(CampusTheme.surface, in: RoundedRectangle(cornerRadius: 24))
+        .overlay(RoundedRectangle(cornerRadius: 24).stroke(CampusTheme.border, lineWidth: 1))
+    }
+
     private var nextClass: ScheduleClass? {
         let calendar = Calendar.current
         let now = Date()
@@ -152,13 +203,43 @@ struct CampusHomeView: View {
     }
 
     private var header: some View {
-        VStack(alignment: .leading, spacing: 6) {
-            Text("Inicio")
-                .font(.system(size: 34, weight: .black))
-                .foregroundStyle(CampusTheme.ink)
-            Text("Hola, \(appState.currentUser?.name ?? "Estudiante")")
-                .font(.system(size: 18, weight: .semibold))
-                .foregroundStyle(CampusTheme.charcoal)
+        HStack(alignment: .top) {
+            VStack(alignment: .leading, spacing: 6) {
+                Text("Inicio")
+                    .font(.system(size: 34, weight: .black))
+                    .foregroundStyle(CampusTheme.ink)
+                Text("Hola, \(appState.currentUser?.name ?? "Estudiante")")
+                    .font(.system(size: 18, weight: .semibold))
+                    .foregroundStyle(CampusTheme.charcoal)
+            }
+            Spacer()
+            HStack(spacing: 6) {
+                if weather.isLoading {
+                    ProgressView().scaleEffect(0.7)
+                } else {
+                    Image(systemName: weather.symbol)
+                        .font(.title3)
+                        .foregroundStyle(CampusTheme.primary)
+                    Text(weather.temperature)
+                        .font(.system(size: 16, weight: .bold))
+                        .foregroundStyle(CampusTheme.ink)
+                }
+            }
+            .padding(.horizontal, 12)
+            .padding(.vertical, 8)
+            .background(CampusTheme.surface, in: RoundedRectangle(cornerRadius: 14))
+            .overlay(RoundedRectangle(cornerRadius: 14).stroke(CampusTheme.border, lineWidth: 1))
+            .task { weather.start() }
+            .opacity(prefs.showWeather ? 1 : 0)
+
+            Button { showPreferences = true } label: {
+                Image(systemName: "gearshape.fill")
+                    .font(.title3)
+                    .foregroundStyle(CampusTheme.muted)
+            }
+            .sheet(isPresented: $showPreferences) {
+                PreferencesView(prefs: prefs)
+            }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
     }
