@@ -14,7 +14,7 @@ final class TranslationHistory {
         // Synchronous
         if let data = UserDefaults.standard.data(forKey: key),
            let saved = try? JSONDecoder().decode([TranslationEntry].self, from: data) {
-            entries = Array(saved.prefix(5))
+            entries = Array(saved.prefix(10))
         }
     }
 
@@ -22,7 +22,7 @@ final class TranslationHistory {
         let entry = TranslationEntry(original: original, translated: translated, date: Date())
         entries.insert(entry, at: 0)
         if entries.count > 5 {
-            entries = Array(entries.prefix(5))
+            entries = Array(entries.prefix(10))
         }
         persist()
     }
